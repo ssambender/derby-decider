@@ -512,6 +512,14 @@
                             boldness = 'bold';
                             medal = '🥇';
                             resultsContainer.style.display = 'flex';
+
+                            // Center burst (straight up)
+                            confetti({
+                                particleCount: 150,
+                                spread: 90,
+                                angle: 90,
+                                origin: { x: 0.7, y: 0.6 },
+                            });
                         } else if (rank === 2) {
                             h.row.classList.add('second-place');
                             color = '#a1a1a1'; // silver
@@ -647,5 +655,6 @@
 <a id="madebysam" href="https://sambender.net">
     Made with ❤️ by Sam Bender
 </a>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </body>
 </html>
