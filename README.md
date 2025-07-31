@@ -9,7 +9,7 @@
 <p align="center">
 A fun horse race simulator with customizable names, styles, speed, and CSV import/export.
  <br>
- <a href="temp.com"><strong>Try it Online »</strong></a>
+ <a href="https://ssambender.github.io/derby-decider/"><strong>Try it Online »</strong></a>
 </p>
 
 ___
