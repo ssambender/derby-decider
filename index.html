@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Derby Decider!</title>
+    <link rel="icon" href="https://raw.githubusercontent.com/ssambender/derby-decider/refs/heads/main/horseRaceLogo.png">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        body {
+            background: #b6ee72;
+            font-family: "Comic Sans MS", cursive;
+            flex-grow: 1;
+        }
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding-top: 48px;
+        }
+
+        main h1 {
+            color: #47700d;
+            font-family: "Comic Sans MS", cursive;
+        }
+
+        #rowCountInput, #speedFactorInput {
+            font-size: 16px;
+            width: 40px;
+            text-align: center;
+            background: none;
+            border: none;
+            color: #47700d;
+            border-bottom: solid 2px #47700d;
+            font-family: "Comic Sans MS", cursive;
+        }
+        #startRaceBtn, #stopRaceBtn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: none;
+            background-color: #47700d;
+            color: #f1ffe7;
+            cursor: pointer;
+            font-family: "Comic Sans MS", cursive;
+        }
+        #startRaceBtn:hover, #stopRaceBtn:hover {
+            background-color: #3d6209;
+        }
+        #startRaceBtn:disabled, #stopRaceBtn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        #control-section:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            user-select: none;
+        }
+        #toggleColorBtn, #toggleStyleBtn, #pasteCsvBtn, #copyCsvBtn {
+            background: none;
+            color: #3d6209;
+            font-family: "Comic Sans MS", cursive;
+            padding: 0 4px;
+            font-size: 16px;
+            border: none;
+            outline: none;
+            cursor: pointer;
+        }
+        #toggleColorBtn:hover, #toggleStyleBtn:hover, #pasteCsvBtn:hover, #copyCsvBtn:hover {
+            text-decoration: underline;
+        }
+        #pasteCsvBtn, #copyCsvBtn {
+            padding: 0;
+        }
+
+        .race-wrapper {
+            display: flex;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            /*border: 4px solid #98d350;*/
+        }
+
+        .container {
+            width: 1000px;
+            background: #e6f0d9;
+            user-select: none;
+        }
+        @media (orientation: portrait) {
+            .container {
+                width: 80vw;
+            }
+        }
+
+        .finish-line {
+            width: 40px;
+            background: repeating-conic-gradient(#856d40 0 25%, rgba(117, 52, 52, 0) 0 50%) 50% / 20px 20px;
+            background-color: #b28a4d;
+            background-size: 20px 20px;
+        }
+
+        #madebysam {
+            color: #3d6209;
+            cursor: pointer;
+            margin-top: 48px;
+            padding-bottom: 12px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        #madebysam:hover {
+            text-decoration: underline;
+        }
+
+        .row {
+            padding: 10px 15px;
+            font-size: 18px;
+            color: #f1ffe7;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            position: relative;
+        }
+        .row:nth-child(odd) {
+            background-color: #84CC16;
+        }
+        .row:nth-child(even) {
+            background-color: #65A30D;
+        }
+        .row.winner {
+            /*background: goldenrod;*/
+            background: linear-gradient(145deg,rgba(245, 199, 61, 1) 0%, rgba(255, 215, 0, 1) 20%, rgba(255, 232, 82, 1) 23%, rgba(255, 215, 0, 1) 27%, rgba(207, 154, 58, 1) 100%);
+            color: black !important;
+            font-weight: bold;
+        }
+        .row.second-place {
+            /*background-color: silver !important;*/
+            background: linear-gradient(145deg, rgba(192, 192, 192, 1) 0%, rgba(220, 220, 220, 1) 20%, rgba(230, 230, 230, 1) 23%, rgba(192, 192, 192, 1) 27%, rgb(228 228 228) 100%);
+
+            color: black !important;
+            font-weight: bold;
+        }
+        .row.third-place {
+            /*background-color: #cd7f32 !important; !* bronze *!*/
+            background: linear-gradient(145deg, rgba(205, 127, 50, 1) 0%, rgba(224, 180, 115, 1) 20%, rgba(235, 194, 130, 1) 23%, rgba(224, 180, 115, 1) 37%, rgba(160, 82, 45, 1) 100%);
+
+            color: black !important;
+            font-weight: bold;
+        }
+
+        .results-container {
+            margin-top: 48px;
+            color: #47700d;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .horse {
+            display: inline-block;
+            margin-right: 10px;
+            transform: scaleX(-1);
+            position: relative;
+            left: 0;
+            font-size: 32px;
+        }
+
+        @keyframes gallop {
+            0%   { transform: scaleX(-1) rotate(0deg); }
+            25%  { transform: scaleX(-1) rotate(10deg); }
+            50%  { transform: scaleX(-1) rotate(0deg); }
+            75%  { transform: scaleX(-1) rotate(-10deg); }
+            100% { transform: scaleX(-1) rotate(0deg); }
+        }
+
+        .galloping {
+            animation: gallop 0.3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Derby Decider Horse Racing!</h1>
+
+    <div style="margin-bottom: 56px; color: #6E9C30; text-align: center; padding: 0 48px">
+        A fun horse race simulator with customizable names, styles, speed, and CSV import/export.
+    </div>
+
+    <fieldset id="control-section" style="display: flex; align-items: center; gap: 20px; color: #47700d; border: none;" disabled>
+        <label>
+            # Horses:
+            <input id="rowCountInput" type="number" min="1" max="99" value="8" />
+        </label>
+
+        <label>
+            Speed:
+            <input id="speedFactorInput" type="number" min="0.3" max="2" step="0.1" value="1"/>
+        </label>
+
+        <button id="toggleColorBtn">Toggle Color</button>
+
+        <button id="toggleStyleBtn">Toggle Style</button>
+
+        <span>CSV:
+            <button id="copyCsvBtn">Copy</button>/<button id="pasteCsvBtn">Paste</button>
+        </span>
+
+    </fieldset>
+
+    <div class="race-wrapper">
+        <div class="container" id="rowsContainer"></div>
+        <div class="finish-line"></div>
+    </div>
+    <div style="margin-top: 10px; display: flex; gap: 10px;">
+        <button id="startRaceBtn">Start Race</button>
+        <button id="stopRaceBtn">Restart</button>
+    </div>
+
+    <div class="results-container" id="resultsContainer" style="display: none;">
+        <u style="font-size: 1.5rem; text-align: center;">🎉 Results! 🎉</u>
+        <div id="resultsList"></div>
+    </div>
+
+    <script>
+        // horse outline: https://em-content.zobj.net/source/microsoft/74/horse_1f40e.png
+        // horse animated gif: https://em-content.zobj.net/source/animated-noto-color-emoji/427/horse_1f40e.gif
+        // horse non-animated gif: https://em-content.zobj.net/source/google/428/horse_1f40e.png
+
+        // Element vars
+        const container = document.getElementById('rowsContainer');
+        const input = document.getElementById('rowCountInput');
+        const speedInput = document.getElementById('speedFactorInput');
+        const button = document.getElementById('startRaceBtn');
+        const stopButton = document.getElementById('stopRaceBtn');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsList = document.getElementById('resultsList');
+        const pasteCsvBtn = document.getElementById('pasteCsvBtn');
+        const copyCsvBtn = document.getElementById('copyCsvBtn');
+        const controlSection = document.getElementById('control-section');
+        const toggleColorBtn = document.getElementById('toggleColorBtn');
+        const toggleStyleBtn = document.getElementById('toggleStyleBtn');
+
+        // Horse neighhh-mes ;)
+        const defaultHorseNames = [
+            "Shadowfax", "Secretariat", "War Admiral", "Sammybabes", "American Pharoah", "Eclipse",
+            "Native Dancer", "Black Caviar", "Jack Sparrow", "Schwarber", "Spectacular Bid", "Mister Ed",
+            "Sea Biscuit", "Trigger", "Black Beauty", "Maximus", "Frou Frou", "BoJack", "Samson",
+            "Philippe", "Pegasus", "Achilles", "Bullseye", "Misty", "Final Gambit", "Journalism",
+            "Society Man", "Hot Jawn", "Money Moves", "Tiz the Law"
+        ];
+
+        // State vars
+        let animationFrameId = null;
+        let isRealisticColor = true;
+        let useGifStyle = false;
+        let isRaceInProgress = false;
+
+        // Enable & disable controls on start
+        controlSection.disabled = false;
+        stopButton.disabled = true;
+
+        // Helper funcs
+        function shuffleArray(arr) {
+            const array = [...arr];
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function getOrdinalSuffix(n) {
+            const j = n % 10,
+                k = n % 100;
+            if (j === 1 && k !== 11) return "st";
+            if (j === 2 && k !== 12) return "nd";
+            if (j === 3 && k !== 13) return "rd";
+            return "th";
+        }
+
+        function updateLabelInteractivity() {
+            const labels = document.querySelectorAll('.label');
+            labels.forEach(label => {
+                if (isRaceInProgress) {
+                    label.style.cursor = 'default';
+                    label.removeAttribute('title');
+                } else {
+                    label.style.cursor = 'pointer';
+                    label.title = 'Click to rename';
+                }
+            });
+        }
+
+        function updateSpeedForOrientation() {
+            const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+            if (isPortrait) {
+                speedInput.value = 0.1;
+            } else {
+                speedInput.value = 1;
+            }
+        }
+
+        updateSpeedForOrientation();
+
+        // Main row setting func
+        function generateRows(count, existingLabels = []) {
+            container.innerHTML = '';
+
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+
+            button.disabled = false;
+            stopButton.disabled = true;
+
+            resultsList.innerHTML = '';
+            resultsContainer.style.display = 'none';
+
+            // Reset horses and rows
+            [...container.children].forEach(row => {
+                const horse = row.querySelector('.horse');
+                horse.style.left = '0px';
+                horse.classList.remove('galloping');
+                row.classList.remove('winner', 'second-place', 'third-place');
+            });
+
+            const shuffledNames = shuffleArray(defaultHorseNames);
+
+            for (let i = 1; i <= count; i++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+
+                const horseSpan = document.createElement('span');
+                horseSpan.className = 'horse';
+                if (useGifStyle) {
+                    horseSpan.innerHTML = `<img src="https://em-content.zobj.net/source/animated-noto-color-emoji/427/horse_1f40e.gif" alt="horse" style="height: 38px;">`;
+                } else {
+                    horseSpan.textContent = '🐎';
+                }
+
+                if (!isRealisticColor) {
+                    const hues = [
+                        0,
+                        160,
+                        320,
+                        100,
+                        220,
+                        0,
+                        190,
+                        275
+                    ];
+                    const hueDegrees = hues[(i - 1) % hues.length];
+                    horseSpan.style.filter = `hue-rotate(${hueDegrees}deg)`;
+                } else {
+                    const realisticTints = [
+                        "brightness(1) saturate(0.7)",
+                        "brightness(1.2) sepia(0.5)",
+                        "brightness(0.8)",
+                        "grayscale(1) brightness(1.1)",
+                        "brightness(0.6)",
+                        "sepia(1) brightness(0.9)",
+                        "contrast(1.2) saturate(0.6)",
+                        "brightness(1.1) sepia(0.3)"
+                    ];
+                    horseSpan.style.filter = realisticTints[(i - 1) % realisticTints.length];
+                }
+
+                row.appendChild(horseSpan);
+
+                const labelSpan = document.createElement('span');
+                labelSpan.className = 'label';
+                labelSpan.textContent = `${i}`;
+                labelSpan.textContent = existingLabels[i - 1] || shuffledNames[i - 1] || `Horse ${i}`;
+                labelSpan.style.cursor = 'pointer';
+                labelSpan.title = 'Click to rename';
+
+                labelSpan.addEventListener('click', () => {
+                    if (isRaceInProgress) return; // Prevent editing during race
+
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = labelSpan.textContent;
+                    input.style.fontSize = 'inherit';
+                    input.style.width = '60px';
+
+                    labelSpan.replaceWith(input);
+                    input.focus();
+
+                    function finishEdit() {
+                        labelSpan.textContent = input.value.trim() || 'Unnamed';
+                        input.replaceWith(labelSpan);
+                    }
+
+                    input.addEventListener('blur', finishEdit);
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') finishEdit();
+                        else if (e.key === 'Escape') input.replaceWith(labelSpan);
+                    });
+                });
+
+                row.appendChild(labelSpan);
+                container.appendChild(row);
+            }
+        }
+
+        generateRows(parseInt(input.value));
+
+        // Main race starting func
+        function startRace() {
+            // Cancel ongoing animations
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+
+            controlSection.disabled = true;
+            button.disabled = true;
+            stopButton.disabled = false;
+
+            resultsList.innerHTML = '';
+            resultsContainer.style.display = 'none';
+
+            isRaceInProgress = true; // used for preventing label editing during race
+            updateLabelInteractivity();
+
+            const rows = [...container.children];
+            const finishLine = container.clientWidth - 17;
+            let finishOrder = [];
+
+            const speedFactor = Math.max(0.3, Math.min(2, parseFloat(speedInput.value) || 1));
+
+            // Reset all horses and rows
+            rows.forEach(row => {
+                const horse = row.querySelector('.horse');
+                horse.style.left = '0px';
+                horse.classList.remove('galloping');
+                row.classList.remove('winner', 'second-place', 'third-place');
+            });
+
+            const horses = rows.map(row => {
+                const horse = row.querySelector('.horse');
+                return {
+                    row,
+                    horse,
+                    position: 0,
+                    baseSpeed: 40 + Math.random() * 30,
+                    speed: 0,
+                    fluctuationTimer: 0
+                };
+            });
+
+            if (!useGifStyle) {
+                horses.forEach(h => h.horse.classList.add('galloping'));
+            }
+
+            let lastTimestamp = null;
+
+            function animate(timestamp) {
+                if (!lastTimestamp) lastTimestamp = timestamp;
+                const delta = Math.min((timestamp - lastTimestamp) / 1000, 0.1);
+                lastTimestamp = timestamp;
+
+                let active = false;
+
+                horses.forEach(h => {
+                    if (h.position >= finishLine) return;
+
+                    h.fluctuationTimer -= delta;
+                    if (h.fluctuationTimer <= 0) {
+                        const swing = (Math.random() - 0.5) * 80;
+                        h.speed = Math.max(10, h.baseSpeed + swing);
+                        h.fluctuationTimer = 0.2 + Math.random() * 0.3;
+                    }
+
+                    h.position += h.speed * delta * speedFactor;
+                    h.horse.style.left = h.position + 'px';
+
+                    if (h.position >= finishLine && !finishOrder.includes(h)) {
+                        h.horse.classList.remove('galloping');
+                        finishOrder.push(h);
+
+                        const labelSpan = h.row.querySelector('.label');
+                        const labelText = labelSpan.textContent;
+                        const isNumeric = !isNaN(labelText);
+                        const displayLabel = isNumeric ? `Horse ${labelText}` : labelText;
+
+                        const rank = finishOrder.length;
+                        const suffix = getOrdinalSuffix(rank);
+
+                        let medal = '';
+                        let color = '';
+                        let boldness = 'normal';
+
+                        if (rank === 1) {
+                            h.row.classList.add('winner');
+                            color = '#d09b0e'; // gold
+                            boldness = 'bold';
+                            medal = '🥇';
+                            resultsContainer.style.display = 'flex';
+                        } else if (rank === 2) {
+                            h.row.classList.add('second-place');
+                            color = '#a1a1a1'; // silver
+                            boldness = 'bold';
+                            medal = '🥈';
+                        } else if (rank === 3) {
+                            h.row.classList.add('third-place');
+                            color = '#a56d36'; // bronze
+                            boldness = 'bold';
+                            medal = '🥉';
+                        }
+
+                        // Insert medal before label span
+                        if (medal) {
+                            const medalSpan = document.createElement('span');
+                            medalSpan.textContent = medal;
+                            medalSpan.style.marginRight = '6px';
+                            medalSpan.style.marginLeft = '-2rem';
+                            labelSpan.parentNode.insertBefore(medalSpan, labelSpan);
+                        }
+
+                        resultsList.innerHTML += `<div style="font-weight: ${boldness}; color: ${color}">${rank}${suffix} – ${displayLabel}</div>`;
+
+                    }
+
+                    if (h.position < finishLine) {
+                        active = true;
+                    }
+                });
+
+                if (active) {
+                    animationFrameId = requestAnimationFrame(animate);
+                } else {
+                    animationFrameId = null;
+                    if (!useGifStyle) {
+                        horses.forEach(h => h.horse.classList.remove('galloping'));
+                    }
+                }
+            }
+
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        // Event listeners
+        input.addEventListener('input', () => {
+            let val = parseInt(input.value);
+            val = Math.max(1, Math.min(100, isNaN(val) ? 1 : val));
+            input.value = val;
+            generateRows(val);
+        });
+
+        button.addEventListener('click', startRace);
+
+        stopButton.addEventListener('click', () => {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+
+            button.disabled = false;
+            stopButton.disabled = true;
+            controlSection.disabled = false;
+
+            // Reset horses and rows
+            [...container.children].forEach(row => {
+                const horse = row.querySelector('.horse');
+                horse.style.left = '0px';
+                horse.classList.remove('galloping');
+                row.classList.remove('winner', 'second-place', 'third-place');
+            });
+
+            resultsList.innerHTML = '';
+            resultsContainer.style.display = 'none';
+            isRaceInProgress = false;
+            updateLabelInteractivity();
+        });
+
+        toggleColorBtn.addEventListener('click', () => {
+            isRealisticColor = !isRealisticColor;
+            const labels = [...container.querySelectorAll('.label')].map(span => span.textContent.trim());
+            generateRows(parseInt(input.value), labels);
+        });
+
+        copyCsvBtn.addEventListener('click', async () => {
+            const labels = [...container.querySelectorAll('.label')].map(span => span.textContent.trim());
+            const csv = labels.join(',');
+
+            try {
+                await navigator.clipboard.writeText(csv);
+                alert('Horse names copied as CSV');
+            } catch (err) {
+                alert('Failed to copy to clipboard.');
+                console.error(err);
+            }
+        });
+
+        toggleStyleBtn.addEventListener('click', () => {
+            useGifStyle = !useGifStyle;
+            const labels = [...container.querySelectorAll('.label')].map(span => span.textContent.trim());
+            generateRows(parseInt(input.value), labels);
+        });
+
+        pasteCsvBtn.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                const labels = text.split(',').map(s => s.trim()).filter(Boolean);
+
+                if (labels.length === 0) {
+                    alert("Clipboard is empty or not a comma-separated list.");
+                    return;
+                }
+
+                input.value = labels.length;
+                generateRows(labels.length);
+
+                const labelSpans = container.querySelectorAll('.label');
+                labels.forEach((label, idx) => {
+                    if (labelSpans[idx]) {
+                        labelSpans[idx].textContent = label || `Horse ${idx + 1}`;
+                    }
+                });
+            } catch (err) {
+                alert("Failed read from clipboard. Try to copy the text again.");
+                console.error(err);
+            }
+        });
+
+        // Event listeners for page rotate/resize
+        window.addEventListener("orientationchange", updateSpeedForOrientation);
+        window.addEventListener("resize", updateSpeedForOrientation);
+    </script>
+</main>
+<a id="madebysam" href="https://sambender.net">
+    Made with ❤️ by Sam Bender
+</a>
+</body>
+</html>
