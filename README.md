@@ -30,6 +30,10 @@ _Feel free to submit pull requests!_
 
 ---
 
+### Libraries used:
+- [confetti.js](https://confetti.js.org/)
+
+---
 
 ### Special thanks:
-- bughouse dev
+- bughouse dev for inspiration
