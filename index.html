@@ -15,7 +15,7 @@
         }
         body {
             background: #b6ee72;
-            font-family: "Comic Sans MS", cursive;
+            font-family: "Comic Sans", "Comic Sans MS", "Chalkboard", "ChalkboardSE-Regular", sans-serif;
             flex-grow: 1;
         }
         main {
@@ -30,7 +30,7 @@
 
         main h1 {
             color: #47700d;
-            font-family: "Comic Sans MS", cursive;
+            font-family: "Comic Sans", "Comic Sans MS", "Chalkboard", "ChalkboardSE-Regular", sans-serif;
         }
 
         #rowCountInput, #speedFactorInput {
@@ -41,7 +41,7 @@
             border: none;
             color: #47700d;
             border-bottom: solid 2px #47700d;
-            font-family: "Comic Sans MS", cursive;
+            font-family: "Comic Sans", "Comic Sans MS", "Chalkboard", "ChalkboardSE-Regular", sans-serif;
         }
         #startRaceBtn, #stopRaceBtn {
             padding: 10px 20px;
@@ -51,7 +51,7 @@
             background-color: #47700d;
             color: #f1ffe7;
             cursor: pointer;
-            font-family: "Comic Sans MS", cursive;
+            font-family: "Comic Sans", "Comic Sans MS", "Chalkboard", "ChalkboardSE-Regular", sans-serif;
         }
         #startRaceBtn:hover, #stopRaceBtn:hover {
             background-color: #3d6209;
@@ -70,7 +70,7 @@
         #toggleColorBtn, #toggleStyleBtn, #pasteCsvBtn, #copyCsvBtn {
             background: none;
             color: #3d6209;
-            font-family: "Comic Sans MS", cursive;
+            font-family: "Comic Sans", "Comic Sans MS", "Chalkboard", "ChalkboardSE-Regular", sans-serif;
             padding: 0 4px;
             font-size: 16px;
             border: none;
@@ -344,9 +344,10 @@
                 const horseSpan = document.createElement('span');
                 horseSpan.className = 'horse';
                 if (useGifStyle) {
-                    horseSpan.innerHTML = `<img src="https://em-content.zobj.net/source/animated-noto-color-emoji/427/horse_1f40e.gif" alt="horse" style="height: 38px;">`;
+                    horseSpan.innerHTML = `<img src="https://em-content.zobj.net/source/animated-noto-color-emoji/427/horse_1f40e.gif" alt="horse" style="height: 38px; margin-bottom: -6px;">`;
                 } else {
-                    horseSpan.textContent = '🐎';
+                    horseSpan.innerHTML = `<img src="https://em-content.zobj.net/source/microsoft/74/horse_1f40e.png" alt="horse" style="height: 38px; margin-bottom: -6px;">`;
+
                 }
 
                 if (!isRealisticColor) {
