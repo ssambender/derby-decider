@@ -24,7 +24,7 @@ ___
 
 
 ### Planned features:
-- [ ] Confetti on win!
+- [X] Confetti on win!
 
 _Feel free to submit pull requests!_
 
