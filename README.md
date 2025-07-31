@@ -1,7 +1,7 @@
 <br>
 
 <p align="center">
- <img src="https://github.com/ssambender/derby-decider/blob/main/horseRaceLogo.png?raw=true" alt="Derby Decider Logo" height="165">
+ <img src="https://raw.githubusercontent.com/ssambender/derby-decider/refs/heads/main/horseRaceLogo.png" alt="Derby Decider Logo" height="165">
 </p>
 
 <h3 align="center">Derby Decider | Horse Racing</h3>
