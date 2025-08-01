@@ -313,7 +313,10 @@
             }
         }
 
-        updateSpeedForOrientation();
+        //updateSpeedForOrientation();
+        if (window.matchMedia("(orientation: portrait)").matches) {
+            speedInput.value = 0.1;
+        }
 
         // Main row setting func
         function generateRows(count, existingLabels = []) {
@@ -656,8 +659,8 @@
         });
 
         // Event listeners for page rotate/resize
-        window.addEventListener("orientationchange", updateSpeedForOrientation);
-        window.addEventListener("resize", updateSpeedForOrientation);
+        //window.addEventListener("orientationchange", updateSpeedForOrientation);
+        //window.addEventListener("resize", updateSpeedForOrientation);
     </script>
 </main>
 <a id="madebysam" href="https://sambender.net">
