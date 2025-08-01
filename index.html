@@ -589,14 +589,16 @@
                 horse.style.left = '0px';
                 horse.classList.remove('galloping');
                 row.classList.remove('winner', 'second-place', 'third-place');
+
+                // Remove medal span if it exists
+                const spans = row.querySelectorAll('span');
+                spans.forEach(span => {
+                    if (['🥇', '🥈', '🥉'].includes(span.textContent.trim())) {
+                        span.remove();
+                    }
+                });
             });
 
-            // Remove medal span if it exists
-            const maybeMedal = row.querySelector('span');
-            if (maybeMedal && ['🥇', '🥈', '🥉'].includes(maybeMedal.textContent.trim())) {
-                maybeMedal.remove();
-            }
-            
             resultsList.innerHTML = '';
             resultsContainer.style.display = 'none';
             isRaceInProgress = false;
