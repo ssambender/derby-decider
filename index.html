@@ -71,7 +71,7 @@
             pointer-events: none;
             user-select: none;
         }
-        #toggleColorBtn, #toggleStyleBtn, #pasteCsvBtn, #copyCsvBtn {
+        #toggleColorBtn, #toggleStyleBtn, #pasteCsvBtn, #copyCsvBtn, #copyUrlBtn {
             background: none;
             color: #3d6209;
             font-family: "Comic Sans", "Comic Sans MS", "Chalkboard", "ChalkboardSE-Regular", sans-serif;
@@ -191,6 +191,22 @@
         .galloping {
             animation: gallop 0.3s ease-in-out infinite;
         }
+
+        .remove-btn {
+            position: absolute;
+            left: -18px;
+            cursor: pointer;
+            color: #e55a41;
+            font-size: 16px;
+            user-select: none;
+        }
+        .remove-btn:hover {
+            transform: scale(1.2);
+        }
+        .row {
+            position: relative;
+        }
+
     </style>
 </head>
 <body>
@@ -215,6 +231,8 @@
         <button id="toggleColorBtn">Toggle Color</button>
 
         <button id="toggleStyleBtn">Toggle Style</button>
+
+        <button id="copyUrlBtn">Copy URL</button>
 
         <span>CSV:
             <button id="copyCsvBtn">Copy</button>/<button id="pasteCsvBtn">Paste</button>
@@ -295,6 +313,8 @@
 
         function updateLabelInteractivity() {
             const labels = document.querySelectorAll('.label');
+            const removeBtns = document.querySelectorAll('.remove-btn');
+
             labels.forEach(label => {
                 if (isRaceInProgress) {
                     label.style.cursor = 'default';
@@ -304,7 +324,12 @@
                     label.title = 'Click to rename';
                 }
             });
+
+            removeBtns.forEach(btn => {
+                btn.style.display = isRaceInProgress ? 'none' : 'inline';
+            });
         }
+
 
         function updateSpeedForOrientation() {
             const isPortrait = window.matchMedia("(orientation: portrait)").matches;
@@ -335,19 +360,32 @@
             resultsList.innerHTML = '';
             resultsContainer.style.display = 'none';
 
-            // Reset horses and rows
-            [...container.children].forEach(row => {
-                const horse = row.querySelector('.horse');
-                horse.style.left = '0px';
-                horse.classList.remove('galloping');
-                row.classList.remove('winner', 'second-place', 'third-place');
-            });
-
             const shuffledNames = shuffleArray(defaultHorseNames);
 
             for (let i = 1; i <= count; i++) {
                 const row = document.createElement('div');
                 row.className = 'row';
+
+                // ❌ Red X Button — only if more than 1 horse
+                if (count > 1) {
+                    const removeBtn = document.createElement('span');
+                    removeBtn.textContent = '✖';
+                    removeBtn.className = 'remove-btn';
+                    removeBtn.title = 'Remove this horse';
+                    removeBtn.addEventListener('click', () => {
+                        if (container.children.length > 1 && !isRaceInProgress) {
+                            row.remove();
+                            const newCount = container.children.length;
+                            input.value = newCount;
+
+                            // Hide all ❌ if only 1 horse left
+                            if (newCount === 1) {
+                                container.querySelectorAll('.remove-btn').forEach(btn => btn.remove());
+                            }
+                        }
+                    });
+                    row.appendChild(removeBtn);
+                }
 
                 const horseSpan = document.createElement('span');
                 horseSpan.className = 'horse';
@@ -355,20 +393,10 @@
                     horseSpan.innerHTML = `<img src="https://em-content.zobj.net/source/animated-noto-color-emoji/427/horse_1f40e.gif" alt="horse" style="height: 38px; margin-bottom: -6px;">`;
                 } else {
                     horseSpan.innerHTML = `<img src="https://em-content.zobj.net/source/microsoft/74/horse_1f40e.png" alt="horse" style="height: 38px; margin-bottom: -6px;">`;
-
                 }
 
                 if (!isRealisticColor) {
-                    const hues = [
-                        0,
-                        160,
-                        320,
-                        100,
-                        220,
-                        0,
-                        190,
-                        275
-                    ];
+                    const hues = [0,160,320,100,220,0,190,275];
                     const hueDegrees = hues[(i - 1) % hues.length];
                     horseSpan.style.filter = `hue-rotate(${hueDegrees}deg)`;
                 } else {
@@ -389,32 +417,31 @@
 
                 const labelSpan = document.createElement('span');
                 labelSpan.className = 'label';
-                labelSpan.textContent = `${i}`;
                 labelSpan.textContent = existingLabels[i - 1] || shuffledNames[i - 1] || `Horse ${i}`;
                 labelSpan.style.cursor = 'pointer';
                 labelSpan.title = 'Click to rename';
 
                 labelSpan.addEventListener('click', () => {
-                    if (isRaceInProgress) return; // Prevent editing during race
+                    if (isRaceInProgress) return;
 
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.value = labelSpan.textContent;
-                    input.style.fontSize = 'inherit';
-                    input.style.width = '60px';
+                    const inputEl = document.createElement('input');
+                    inputEl.type = 'text';
+                    inputEl.value = labelSpan.textContent;
+                    inputEl.style.fontSize = 'inherit';
+                    inputEl.style.width = '60px';
 
-                    labelSpan.replaceWith(input);
-                    input.focus();
+                    labelSpan.replaceWith(inputEl);
+                    inputEl.focus();
 
                     function finishEdit() {
-                        labelSpan.textContent = input.value.trim() || 'Unnamed';
-                        input.replaceWith(labelSpan);
+                        labelSpan.textContent = inputEl.value.trim() || 'Unnamed';
+                        inputEl.replaceWith(labelSpan);
                     }
 
-                    input.addEventListener('blur', finishEdit);
-                    input.addEventListener('keydown', (e) => {
+                    inputEl.addEventListener('blur', finishEdit);
+                    inputEl.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') finishEdit();
-                        else if (e.key === 'Escape') input.replaceWith(labelSpan);
+                        else if (e.key === 'Escape') inputEl.replaceWith(labelSpan);
                     });
                 });
 
@@ -427,7 +454,6 @@
 
         // Main race starting func
         function startRace() {
-            // Cancel ongoing animations
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
                 animationFrameId = null;
@@ -436,11 +462,12 @@
             controlSection.disabled = true;
             button.disabled = true;
             stopButton.disabled = false;
+            stopButton.textContent = "Stop Race"; // always starts as Stop Race
 
             resultsList.innerHTML = '';
             resultsContainer.style.display = 'none';
 
-            isRaceInProgress = true; // used for preventing label editing during race
+            isRaceInProgress = true;
             updateLabelInteractivity();
 
             const rows = [...container.children];
@@ -449,7 +476,6 @@
 
             const speedFactor = Math.max(0.3, Math.min(2, parseFloat(speedInput.value) || 1));
 
-            // Reset all horses and rows
             rows.forEach(row => {
                 const horse = row.querySelector('.horse');
                 horse.style.left = '0px';
@@ -513,12 +539,10 @@
 
                         if (rank === 1) {
                             h.row.classList.add('winner');
-                            color = '#d09b0e'; // gold
+                            color = '#d09b0e';
                             boldness = 'bold';
                             medal = '🥇';
                             resultsContainer.style.display = 'flex';
-
-                            // Center burst (straight up)
                             confetti({
                                 particleCount: 150,
                                 spread: 90,
@@ -527,17 +551,16 @@
                             });
                         } else if (rank === 2) {
                             h.row.classList.add('second-place');
-                            color = '#a1a1a1'; // silver
+                            color = '#a1a1a1';
                             boldness = 'bold';
                             medal = '🥈';
                         } else if (rank === 3) {
                             h.row.classList.add('third-place');
-                            color = '#a56d36'; // bronze
+                            color = '#a56d36';
                             boldness = 'bold';
                             medal = '🥉';
                         }
 
-                        // Insert medal before label span
                         if (medal) {
                             const medalSpan = document.createElement('span');
                             medalSpan.textContent = medal;
@@ -548,6 +571,11 @@
 
                         resultsList.innerHTML += `<div style="font-weight: ${boldness}; color: ${color}">${rank}${suffix} – ${displayLabel}</div>`;
 
+                        // If all horses finished, change Stop to Restart
+                        if (finishOrder.length === horses.length) {
+                            stopButton.textContent = "Restart";
+                            isRaceInProgress = false;
+                        }
                     }
 
                     if (h.position < finishLine) {
@@ -568,6 +596,39 @@
             animationFrameId = requestAnimationFrame(animate);
         }
 
+        stopButton.addEventListener('click', () => {
+            if (stopButton.textContent === "Stop Race") {
+                // Stop mid-race
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                stopButton.textContent = "Restart";
+                isRaceInProgress = false;
+                updateLabelInteractivity();
+            } else {
+                // Restart after race or after stopping
+                button.disabled = false;
+                stopButton.disabled = true;
+                controlSection.disabled = false;
+
+                [...container.children].forEach(row => {
+                    const horse = row.querySelector('.horse');
+                    horse.style.left = '0px';
+                    horse.classList.remove('galloping');
+                    row.classList.remove('winner', 'second-place', 'third-place');
+                    const spans = row.querySelectorAll('span');
+                    spans.forEach(span => {
+                        if (['🥇', '🥈', '🥉'].includes(span.textContent.trim())) {
+                            span.remove();
+                        }
+                    });
+                });
+
+                resultsList.innerHTML = '';
+                resultsContainer.style.display = 'none';
+                isRaceInProgress = false;
+                updateLabelInteractivity();
+            }
+        });
+
         // Event listeners
         input.addEventListener('input', () => {
             let val = parseInt(input.value);
@@ -579,37 +640,37 @@
         button.addEventListener('click', startRace);
 
         stopButton.addEventListener('click', () => {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
+            if (stopButton.textContent === "Stop Race") {
+                // Stop mid-race
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                stopButton.textContent = "Restart";
+                isRaceInProgress = false;
+                updateLabelInteractivity();
+            } else {
+                // Restart after race or after stopping
+                button.disabled = false;
+                stopButton.disabled = true;
+                controlSection.disabled = false;
 
-            button.disabled = false;
-            stopButton.disabled = true;
-            controlSection.disabled = false;
-
-            // Reset horses and rows
-            [...container.children].forEach(row => {
-                const horse = row.querySelector('.horse');
-                horse.style.left = '0px';
-                horse.classList.remove('galloping');
-                row.classList.remove('winner', 'second-place', 'third-place');
-
-                // Remove medal span if it exists
-                const spans = row.querySelectorAll('span');
-                spans.forEach(span => {
-                    if (['🥇', '🥈', '🥉'].includes(span.textContent.trim())) {
-                        span.remove();
-                    }
+                [...container.children].forEach(row => {
+                    const horse = row.querySelector('.horse');
+                    horse.style.left = '0px';
+                    horse.classList.remove('galloping');
+                    row.classList.remove('winner', 'second-place', 'third-place');
+                    const spans = row.querySelectorAll('span');
+                    spans.forEach(span => {
+                        if (['🥇', '🥈', '🥉'].includes(span.textContent.trim())) {
+                            span.remove();
+                        }
+                    });
                 });
-            });
 
-            resultsList.innerHTML = '';
-            resultsContainer.style.display = 'none';
-            isRaceInProgress = false;
-            updateLabelInteractivity();
+                resultsList.innerHTML = '';
+                resultsContainer.style.display = 'none';
+                isRaceInProgress = false;
+                updateLabelInteractivity();
+            }
         });
-
         toggleColorBtn.addEventListener('click', () => {
             isRealisticColor = !isRealisticColor;
             const labels = [...container.querySelectorAll('.label')].map(span => span.textContent.trim());
@@ -663,6 +724,51 @@
         // Event listeners for page rotate/resize
         //window.addEventListener("orientationchange", updateSpeedForOrientation);
         //window.addEventListener("resize", updateSpeedForOrientation);
+
+        // copy all horse names as a url
+        document.getElementById('copyUrlBtn').addEventListener('click', async () => {
+            const labels = [...container.querySelectorAll('.label')]
+                .map(span => encodeURIComponent(span.textContent.trim()));
+
+            const baseUrl = window.location.origin + window.location.pathname;
+            const fullUrl = `${baseUrl}?names=${labels.join(',')}`;
+
+            try {
+                await navigator.clipboard.writeText(fullUrl);
+                alert('Horse names URL copied to clipboard!');
+            } catch (err) {
+                alert('Failed to copy URL to clipboard.');
+                console.error(err);
+            }
+        });
+
+        // Check for ?names= in URL and load them
+        (function loadNamesFromQuery() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has("names")) {
+                const raw = decodeURIComponent(params.get("names")).trim();
+
+                if (raw.length > 0) {
+                    const labels = raw.split(",")
+                        .map(s => s.trim())
+                        .filter(Boolean);
+
+                    if (labels.length > 0) {
+                        input.value = labels.length;
+                        generateRows(labels.length);
+
+                        const labelSpans = container.querySelectorAll('.label');
+                        labels.forEach((label, idx) => {
+                            if (labelSpans[idx]) {
+                                labelSpans[idx].textContent = label || `Horse ${idx + 1}`;
+                            }
+                        });
+                    }
+                }
+
+                history.replaceState(null, '', window.location.pathname);
+            }
+        })();
     </script>
 </main>
 <a id="madebysam" href="https://sambender.net">
